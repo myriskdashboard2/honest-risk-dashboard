@@ -87,6 +87,11 @@ flattering simulation), you can buy me a coffee:
 Supporting is entirely optional and gives no extra features, no premium
 signals and no advice — the app stays identical for everyone.
 
+## Contact
+
+Questions, bug reports or ideas: open an issue here on GitHub, or email
+**myriskdashboard2@gmail.com**.
+
 ## License
 
 [MIT](LICENSE) © 2026 Michael Johnlin
