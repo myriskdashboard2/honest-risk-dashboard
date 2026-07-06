@@ -2,6 +2,8 @@
 
 **See the risk of your fund/ETF portfolio in real money — before you buy.**
 
+[![Download](https://img.shields.io/badge/⬇%20Download-latest%20version%20(ZIP)-2ea44f?style=for-the-badge)](https://github.com/myriskdashboard2/honest-risk-dashboard/archive/refs/heads/main.zip)
+
 A local, private portfolio risk tool for retail investors. You enter what you
 own (or what you're thinking of buying); it shows you — honestly — how much it
 shakes, what a bad day/month costs in money, whether your funds actually
@@ -41,7 +43,8 @@ risk, never make promises.**
 
 1. Install [Python 3](https://www.python.org/downloads/) — check
    **"Add Python to PATH"** during installation.
-2. Download this repository (green **Code** button → *Download ZIP*) and unzip.
+2. Click the green **Download** button above (or the **Code** button → *Download
+   ZIP*) and unzip the file anywhere, e.g. on your Desktop.
 3. Double-click **`INSTALLERA.bat`** (installs the Python libraries — one time).
 4. Double-click **`skapa_genvagar.bat`** (creates desktop start/stop icons).
 5. Click the **"Jane Street - STARTA"** icon — the dashboard opens in your
