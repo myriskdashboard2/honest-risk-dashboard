@@ -45,10 +45,13 @@ risk, never make promises.**
    **"Add Python to PATH"** during installation.
 2. Click the green **Download** button above (or the **Code** button → *Download
    ZIP*) and unzip the file anywhere, e.g. on your Desktop.
-3. Double-click **`INSTALLERA.bat`** (installs the Python libraries — one time).
-4. Double-click **`skapa_genvagar.bat`** (creates desktop start/stop icons).
-5. Click the **"Jane Street - STARTA"** icon — the dashboard opens in your
+3. Double-click **`INSTALLERA.bat`** — installs the Python libraries and
+   creates the desktop start/stop icons (one time).
+4. Click the **"Jane Street - STARTA"** icon — the dashboard opens in your
    browser at `http://127.0.0.1:8750`.
+
+> Icons didn't appear? Run **`skapa_genvagar.bat`** manually — it (re)creates
+> the desktop shortcuts.
 
 > The `.bat` files have Swedish names (the tool was born in Sweden):
 > `INSTALLERA` = install, `STARTA_APP`/`STOPPA_APP` = start/stop the app,

@@ -30,10 +30,14 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 echo.
+echo Skapar skrivbordsikoner ...
+call skapa_genvagar.bat
+
+echo.
 echo ================================================================
-echo   KLART! Nu kan du kora:
-echo     RISK.bat     = full riskrapport (en gang)
-echo     MATARE.bat   = live-matare (uppdaterar var 5:e minut)
+echo   ALLT KLART! Pa skrivbordet finns nu:
+echo     "Jane Street - STARTA"  = oppnar appen i webblasaren
+echo     "Jane Street - STOPPA"  = stanger den
 echo ================================================================
 echo.
 pause
