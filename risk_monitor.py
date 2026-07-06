@@ -10,7 +10,7 @@ Pilar jamfor mot:  forra matningen  ·  igar  ·  manadens start
   rod pil upp = risken har STIGIT (samre)
   gron pil ner = risken har SJUNKIT (battre)
 
-Kor:  python risk_monitor.py   (eller dubbelklicka MATARE.bat)
+Kor:  python risk_monitor.py   (anvands aven av appen via app.py)
 Historik sparas i risk_history.json sa jamforelserna byggs upp over tid.
 Avsluta med Ctrl+C.
 """

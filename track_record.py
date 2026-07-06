@@ -15,7 +15,7 @@ enkla portfoljen riskjusterat -> forenkla, komplexiteten kostar dig pengar.
 Loggar du ditt RIKTIGA konto i mitt_konto.json raknas ocksa din faktiska
 tidsviktade avkastning mot benchmark over samma period.
 
-Kor:  python track_record.py   (eller dubbelklicka MERITLISTA.bat)
+Kor:  python track_record.py   (anvands aven av appen via app.py)
 """
 
 import os

@@ -22,7 +22,6 @@ Filer som ska finnas:
   STARTA_APP.bat     - startar appen (det ar denna ikonen pekar pa)
   STOPPA_APP.bat     - stoppar appen
   gen_ikoner.py      - skapar ikonfilerna
-  RISK.bat, MATARE.bat, MERITLISTA.bat - gamla terminal-versionerna (funkar an)
   LAS_MIG.txt        - den har filen
 
 
