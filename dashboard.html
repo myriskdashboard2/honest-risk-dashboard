@@ -72,6 +72,7 @@
   <button data-flik="stress" onclick="visa('stress')"></button>
   <button data-flik="merit" onclick="visa('merit')"></button>
   <button data-flik="hjalp" onclick="visa('hjalp')"></button>
+  <button data-flik="stod" onclick="visa('stod')"></button>
 </nav>
 <main>
 
@@ -149,18 +150,25 @@
 <!-- ============ HJÄLP / HELP (fylls av JS) ============ -->
 <div class="flik" id="flik-hjalp"></div>
 
+<!-- ============ STÖD / SUPPORT (fylls av JS) ============ -->
+<div class="flik" id="flik-stod"></div>
+
 </main>
 <script>
 /* ==================== SPRÅK / LANGUAGE ==================== */
 const LANG = (localStorage.getItem('lang')||'sv');
 function bytLang(){ localStorage.setItem('lang', LANG==='sv'?'en':'sv'); location.reload(); }
 
+/* Donationslankar - byt YOUR_USERNAME nar kontona finns */
+const STOD_BMAC = 'https://buymeacoffee.com/YOUR_USERNAME';
+const STOD_PAYPAL = 'https://paypal.me/YOUR_USERNAME';
+
 const T = {
 sv: {
   titel:'📊 Min riskdashboard', undertitel:'allt lokalt · ingen inloggning · rör inga riktiga pengar',
   langKnapp:'🌐 English',
   flik:{innehav:'🏦 Innehav',rebalans:'⚖️ Rebalansering',matare:'🌡️ Mätare',risk:'🛡️ Risk',
-        stress:'🌪️ Stresstest',merit:'🏆 Meritlista',hjalp:'❓ Hjälp'},
+        stress:'🌪️ Stresstest',merit:'🏆 Meritlista',hjalp:'❓ Hjälp',stod:'☕ Stöd'},
   krSuffix:' kr',
   innehavH2:'Vad äger du på Avanza?',
   innehavIntro:'Öppna din bank/mäklare (t.ex. Avanza) → <b>Min ekonomi / Innehav</b>. Skriv in <b>värdet i kronor</b> för varje fond precis som det visas. <b>Målvikt</b> = hur många procent du <i>vill</i> att fonden ska vara. Ticker behövs för kursdata – använd 🔍-sökningen nedan om du lägger till en ny fond (ISIN räcker inte).',
@@ -292,13 +300,30 @@ sv: {
     <b>2. Korrelationer sviker i kris.</b> Saker som brukar röra sig olika faller ofta ihop <i>samtidigt</i> i panik – precis när du behöver skyddet.<br>
     <b>3. Fondkurser släpar.</b> NAV sätts en gång om dagen vid olika tidpunkter – därför mäts beta på veckodata.<br>
     <b>4. Ingen prediktion finns.</b> Appen säger aldrig "köp nu" – den visar bara priset i kronor för den risk du redan valt. Beslutet är alltid ditt.</p>
+  </div>`,
+  stodHtml:`
+  <div class="panel" style="text-align:center;padding:34px 24px">
+    <div style="font-size:44px">☕</div>
+    <h2 style="font-size:20px;margin-top:10px">Gillar du appen?</h2>
+    <p style="line-height:1.7;max-width:520px;margin:10px auto 0">Appen är gratis och kommer
+    alltid att vara det. Om den har hjälpt dig se din risk klarare – eller räddat dig från ett
+    dåligt beslut – får du gärna bjuda på en kaffe. Helt frivilligt.</p>
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:22px;flex-wrap:wrap">
+      <a href="${STOD_BMAC}" target="_blank" rel="noopener" class="knapp"
+         style="background:#ffcc4d;color:#1a1a1a;text-decoration:none">☕ Buy Me a Coffee</a>
+      <a href="${STOD_PAYPAL}" target="_blank" rel="noopener" class="knapp"
+         style="text-decoration:none">💙 PayPal</a>
+    </div>
+    <p class="hint" style="max-width:520px;margin:22px auto 0">Ett stöd ger inga extrafunktioner,
+    inga "premiumsignaler" och ingen rådgivning – appen är identisk för alla, alltid.
+    Pengarna är en gåva som säger tack, inget annat.</p>
   </div>`
 },
 en: {
   titel:'📊 My Risk Dashboard', undertitel:'runs locally · no login · never touches real money',
   langKnapp:'🌐 Svenska',
   flik:{innehav:'🏦 Holdings',rebalans:'⚖️ Rebalancing',matare:'🌡️ Gauge',risk:'🛡️ Risk',
-        stress:'🌪️ Stress Test',merit:'🏆 Track Record',hjalp:'❓ Help'},
+        stress:'🌪️ Stress Test',merit:'🏆 Track Record',hjalp:'❓ Help',stod:'☕ Support'},
   krSuffix:' SEK',
   innehavH2:'What do you own?',
   innehavIntro:'Open your bank/broker (e.g. Avanza) → <b>your holdings page</b>. Enter the <b>value in SEK</b> for each fund exactly as shown. <b>Target weight</b> = the percentage you <i>want</i> the fund to be. A ticker is needed for price data – use the 🔍 search below when adding a new fund (an ISIN is not enough).',
@@ -430,6 +455,23 @@ en: {
     <b>2. Correlations fail in a crisis.</b> Things that usually move differently often fall <i>together</i> in a panic – exactly when you need the protection.<br>
     <b>3. Fund prices lag.</b> NAVs are set once a day at different times – which is why beta is measured on weekly data.<br>
     <b>4. There is no prediction.</b> The app never says "buy now" – it only shows the price in money of the risk you have already chosen. The decision is always yours.</p>
+  </div>`,
+  stodHtml:`
+  <div class="panel" style="text-align:center;padding:34px 24px">
+    <div style="font-size:44px">☕</div>
+    <h2 style="font-size:20px;margin-top:10px">Enjoying the app?</h2>
+    <p style="line-height:1.7;max-width:520px;margin:10px auto 0">The app is free and always
+    will be. If it helped you see your risk more clearly – or saved you from a bad decision –
+    you are welcome to buy me a coffee. Entirely optional.</p>
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:22px;flex-wrap:wrap">
+      <a href="${STOD_BMAC}" target="_blank" rel="noopener" class="knapp"
+         style="background:#ffcc4d;color:#1a1a1a;text-decoration:none">☕ Buy Me a Coffee</a>
+      <a href="${STOD_PAYPAL}" target="_blank" rel="noopener" class="knapp"
+         style="text-decoration:none">💙 PayPal</a>
+    </div>
+    <p class="hint" style="max-width:520px;margin:22px auto 0">Supporting gives no extra
+    features, no "premium signals" and no advice – the app is identical for everyone, always.
+    The money is a thank-you gift, nothing more.</p>
   </div>`
 }};
 const L = T[LANG];
@@ -462,6 +504,7 @@ function fyllStatiskt(){
   $('#stressInnehall').textContent=L.stressLaddar;
   $('#meritInnehall').textContent=L.meritLaddar;
   $('#flik-hjalp').innerHTML=L.hjalpHtml;
+  $('#flik-stod').innerHTML=L.stodHtml;
   $('#friskrivning').innerHTML=`
     <div class="panel" style="max-width:640px;margin:0 auto;border-color:var(--gul)">
       <h2 style="font-size:20px">${L.discRubrik}</h2>
