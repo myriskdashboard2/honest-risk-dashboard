@@ -53,6 +53,11 @@ risk, never make promises.**
 > Icons didn't appear? Run **`skapa_genvagar.bat`** manually — it (re)creates
 > the desktop shortcuts.
 
+> **Tip — avoid Windows security warnings:** Windows marks downloaded files as
+> blocked. Either just click *Run* when asked (INSTALLERA then unblocks all
+> other files automatically), or prevent it entirely: right-click the
+> downloaded ZIP → **Properties** → check **Unblock** → OK, *then* extract.
+
 > The `.bat` files have Swedish names (the tool was born in Sweden):
 > `INSTALLERA` = install, `STARTA_APP`/`STOPPA_APP` = start/stop the app,
 > `skapa_genvagar` = create desktop shortcuts.

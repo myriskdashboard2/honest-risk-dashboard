@@ -6,6 +6,13 @@ echo   INSTALLERA riskmataren pa den har datorn
 echo ================================================================
 echo.
 
+REM Ta bort Windows internetblockering (Mark of the Web) fran alla filer,
+REM sa att inte varje .bat-fil ger en sakerhetsvarning.
+echo  Avblockerar filerna (Windows markerar nedladdade filer) ...
+powershell -NoProfile -Command "Get-ChildItem -LiteralPath '%~dp0' -Recurse | Unblock-File" >nul 2>&1
+echo  Klart.
+echo.
+
 REM 1) Finns Python?
 python --version >nul 2>&1
 if errorlevel 1 (
