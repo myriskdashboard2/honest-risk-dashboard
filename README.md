@@ -82,7 +82,7 @@ The app is free and always will be. If it saved you from a bad decision (or a
 flattering simulation), you can buy me a coffee:
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-yellow?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/YOUR_USERNAME)
-[![PayPal](https://img.shields.io/badge/PayPal-donate-blue?logo=paypal)](https://paypal.me/YOUR_USERNAME)
+[![PayPal](https://img.shields.io/badge/PayPal-donate-blue?logo=paypal)](https://paypal.me/myriskdashboard)
 
 Supporting is entirely optional and gives no extra features, no premium
 signals and no advice — the app stays identical for everyone.
