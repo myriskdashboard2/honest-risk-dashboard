@@ -1,0 +1,59 @@
+================================================================
+  RISKMATARE for ETF-portfolj  -  FLYTTA TILL NY DATOR
+================================================================
+
+VAD DU KOPIERAR
+---------------
+Kopiera HELA mappen "jane-street" till ditt USB-minne, och sedan
+till den nya datorn (t.ex. till Skrivbordet). Alla filer maste ligga
+kvar TILLSAMMANS i samma mapp.
+
+Filer som ska finnas:
+  app.py             - SJALVA APPEN (dashboard i webblasaren)
+  dashboard.html     - appens utseende
+  risk_engine.py     - raknar risken (full rapport)
+  risk_monitor.py    - live-mataren
+  track_record.py    - meritlista mot benchmark
+  portfolio.json     - DINA ETF:er (redigeras enklast i appen!)
+  mitt_konto.json    - logg over ditt riktiga kontovarde
+  requirements.txt   - lista over bibliotek som behovs
+  INSTALLERA.bat     - installerar bibliotek pa nya datorn
+  skapa_genvagar.bat - lagger START/STOPP-ikoner pa skrivbordet
+  STARTA_APP.bat     - startar appen (det ar denna ikonen pekar pa)
+  STOPPA_APP.bat     - stoppar appen
+  gen_ikoner.py      - skapar ikonfilerna
+  RISK.bat, MATARE.bat, MERITLISTA.bat - gamla terminal-versionerna (funkar an)
+  LAS_MIG.txt        - den har filen
+
+
+SA HAR INSTALLERAR DU PA NYA DATORN
+-----------------------------------
+1. Har datorn Python?  Om du ar osaker: kor INSTALLERA.bat, den sager till.
+   Saknas Python:
+     - Ga till  https://www.python.org/downloads/
+     - Installera Python 3
+     - BOCKA I "Add Python to PATH" under installationen (viktigt!)
+
+2. Dubbelklicka  INSTALLERA.bat
+   Den hamtar biblioteken (yfinance, pandas, numpy, flask, pillow).
+   Kravs internet. Gors bara EN gang per dator.
+
+3. Dubbelklicka  skapa_genvagar.bat
+   Da far du tva ikoner pa skrivbordet:
+     "Jane Street - STARTA"  = oppnar dashboarden i webblasaren
+     "Jane Street - STOPPA"  = stanger den
+
+4. Klart! Klicka STARTA-ikonen. I appen finns flikarna:
+   Innehav / Rebalansering / Matare / Risk / Meritlista.
+   Under Innehav skriver du in vardet i kronor fran Avanza.
+
+
+BRA ATT VETA
+------------
+- Verktyget behover INTERNET (hamtar riktiga ETF-kurser).
+- Andra dina innehav i portfolio.json. Du kan skriva //-kommentarer dar.
+- Ingen inloggning, inga losenord, inga riktiga pengar rors - bara
+  offentlig kursdata. Det koper eller saljer INGENTING at dig.
+- Kor du fran sjalva USB-minnet funkar det ocksa, sa lange Python ar
+  installerat pa datorn.
+================================================================

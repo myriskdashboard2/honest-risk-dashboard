@@ -1,0 +1,17 @@
+# ===== PRIVATA FILER - far ALDRIG committas =====
+# Din riktiga portfolj och matthistorik ar privata.
+portfolio.json
+risk_history.json
+mitt_konto.json
+portfolio_backup*.json
+
+# ===== Genererat / temporart =====
+__pycache__/
+*.pyc
+app.pid
+*.ico
+
+# ===== OS-skrap =====
+Thumbs.db
+Desktop.ini
+.DS_Store

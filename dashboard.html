@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Risk Dashboard</title>
+<style>
+  :root{--bg:#0f1420;--panel:#1a2233;--kant:#2a3550;--text:#e8ecf5;--dim:#8a94ab;
+        --gron:#3ddc84;--rod:#ff5a5a;--gul:#ffcc4d;--bla:#4da3ff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+       font-size:16px;padding-bottom:60px}
+  header{padding:18px 24px;border-bottom:1px solid var(--kant);display:flex;
+         align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{font-size:22px}
+  header span{color:var(--dim);font-size:13px}
+  #langBtn{margin-left:auto;background:var(--panel);color:var(--text);
+           border:1px solid var(--kant);padding:6px 14px;border-radius:8px;
+           font-size:14px;cursor:pointer}
+  nav{display:flex;gap:6px;padding:12px 24px;flex-wrap:wrap}
+  nav button{background:var(--panel);color:var(--text);border:1px solid var(--kant);
+             padding:10px 18px;border-radius:8px;font-size:15px;cursor:pointer}
+  nav button.aktiv{background:var(--bla);border-color:var(--bla);color:#fff;font-weight:600}
+  main{padding:10px 24px;max-width:1000px}
+  .panel{background:var(--panel);border:1px solid var(--kant);border-radius:12px;
+         padding:20px;margin-bottom:16px}
+  h2{font-size:17px;margin-bottom:12px}
+  table{border-collapse:collapse;width:100%;font-size:15px}
+  th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--kant)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--dim);font-weight:600;font-size:13px}
+  .gron{color:var(--gron)} .rod{color:var(--rod)} .gul{color:var(--gul)} .dim{color:var(--dim)}
+  .stor{font-size:34px;font-weight:700}
+  input{background:#0d1220;color:var(--text);border:1px solid var(--kant);
+        border-radius:6px;padding:8px 10px;font-size:15px;width:100%}
+  input:focus{outline:1px solid var(--bla)}
+  .knapp{background:var(--bla);color:#fff;border:none;border-radius:8px;
+         padding:12px 22px;font-size:15px;font-weight:600;cursor:pointer}
+  .knapp.grov{background:var(--gron);color:#08130c}
+  .knapp.tunn{background:var(--panel);color:var(--text);border:1px solid var(--kant)}
+  .medd{padding:10px 14px;border-radius:8px;margin:10px 0;display:none;font-size:15px}
+  .medd.ok{background:#153524;color:var(--gron);display:block}
+  .medd.fel{background:#3a1720;color:var(--rod);display:block}
+  .laddar{color:var(--dim);padding:30px;text-align:center;font-size:15px}
+  .gaugeYtre{background:#0d1220;border-radius:10px;height:34px;overflow:hidden;
+             border:1px solid var(--kant);margin:10px 0}
+  .gaugeInre{height:100%;transition:width .8s}
+  .pilrad{display:flex;justify-content:space-between;padding:10px 4px;
+          border-bottom:1px solid var(--kant);font-size:16px}
+  .hint{color:var(--dim);font-size:13px;line-height:1.5;margin-top:10px}
+  svg{width:100%;height:180px}
+  .flik{display:none} .flik.visas{display:block}
+  td input{min-width:70px}
+  .hjalp-panel p{line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- Friskrivning / Disclaimer (fylls av JS) -->
+<div id="friskrivning" style="display:none;position:fixed;inset:0;background:rgba(5,8,15,.92);
+     z-index:100;overflow-y:auto;padding:30px 16px"></div>
+
+<header>
+  <h1 id="tTitel"></h1>
+  <span id="tUndertitel"></span>
+  <button id="langBtn" onclick="bytLang()"></button>
+</header>
+<nav>
+  <button data-flik="innehav" class="aktiv" onclick="visa('innehav')"></button>
+  <button data-flik="rebalans" onclick="visa('rebalans')"></button>
+  <button data-flik="matare" onclick="visa('matare')"></button>
+  <button data-flik="risk" onclick="visa('risk')"></button>
+  <button data-flik="stress" onclick="visa('stress')"></button>
+  <button data-flik="merit" onclick="visa('merit')"></button>
+  <button data-flik="hjalp" onclick="visa('hjalp')"></button>
+</nav>
+<main>
+
+<!-- ============ INNEHAV / HOLDINGS ============ -->
+<div class="flik visas" id="flik-innehav">
+  <div class="panel">
+    <h2 id="tInnehavH2"></h2>
+    <p class="hint" style="margin-bottom:12px" id="tInnehavIntro"></p>
+    <table id="tabInnehav">
+      <thead><tr><th id="thNamn"></th><th id="thTicker"></th><th id="thVikt"></th>
+        <th id="thVarde"></th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="knapp tunn" onclick="nyRad()" id="tBtnNyRad"></button>
+      <button class="knapp grov" onclick="sparaInnehav()" id="tBtnSpara"></button>
+    </div>
+    <div class="medd" id="meddInnehav"></div>
+    <p class="hint"><span id="tSummaVardeL"></span> <b id="summaVarde">–</b> ·
+      <span id="tSummaViktL"></span> <b id="summaVikt">–</b>
+      <span id="tSummaNot"></span></p>
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--kant)">
+      <h2 id="tSokH2"></h2>
+      <p class="hint" style="margin-bottom:8px" id="tSokIntro"></p>
+      <div style="display:flex;gap:10px">
+        <input id="sokFalt" style="max-width:320px" onkeydown="if(event.key==='Enter')sokFond()">
+        <button class="knapp" onclick="sokFond()" id="tBtnSok"></button>
+      </div>
+      <div id="sokResultat" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REBALANSERING / REBALANCING ============ -->
+<div class="flik" id="flik-rebalans">
+  <div class="panel">
+    <h2 id="tRebalH2"></h2>
+    <div id="rebalansInnehall" class="laddar"></div>
+    <p class="hint" id="tRebalHint"></p>
+  </div>
+</div>
+
+<!-- ============ MÄTARE / GAUGE ============ -->
+<div class="flik" id="flik-matare">
+  <div class="panel">
+    <h2><span id="tGaugeH2"></span> <span class="dim" id="gaugeTid"></span></h2>
+    <div class="stor" id="gaugeTal">–</div>
+    <div class="gaugeYtre"><div class="gaugeInre" id="gaugeBar" style="width:0%"></div></div>
+    <div id="gaugeNiva" class="dim"></div>
+    <div style="margin-top:16px">
+      <div class="pilrad"><span id="tPilForraL"></span><b id="pilForra">–</b></div>
+      <div class="pilrad"><span id="tPilIgarL"></span><b id="pilIgar">–</b></div>
+      <div class="pilrad"><span id="tPilManadL"></span><b id="pilManad">–</b></div>
+    </div>
+    <div class="pilrad"><span id="tGaugeVarL"></span><b class="rod" id="gaugeVar">–</b></div>
+    <p class="hint" id="tGaugeHint"></p>
+  </div>
+</div>
+
+<!-- ============ RISK ============ -->
+<div class="flik" id="flik-risk">
+  <div id="riskInnehall" class="laddar"></div>
+</div>
+
+<!-- ============ STRESSTEST / STRESS TEST ============ -->
+<div class="flik" id="flik-stress">
+  <div id="stressInnehall" class="laddar"></div>
+</div>
+
+<!-- ============ MERITLISTA / TRACK RECORD ============ -->
+<div class="flik" id="flik-merit">
+  <div id="meritInnehall" class="laddar"></div>
+</div>
+
+<!-- ============ HJÄLP / HELP (fylls av JS) ============ -->
+<div class="flik" id="flik-hjalp"></div>
+
+</main>
+<script>
+/* ==================== SPRÅK / LANGUAGE ==================== */
+const LANG = (localStorage.getItem('lang')||'sv');
+function bytLang(){ localStorage.setItem('lang', LANG==='sv'?'en':'sv'); location.reload(); }
+
+const T = {
+sv: {
+  titel:'📊 Min riskdashboard', undertitel:'allt lokalt · ingen inloggning · rör inga riktiga pengar',
+  langKnapp:'🌐 English',
+  flik:{innehav:'🏦 Innehav',rebalans:'⚖️ Rebalansering',matare:'🌡️ Mätare',risk:'🛡️ Risk',
+        stress:'🌪️ Stresstest',merit:'🏆 Meritlista',hjalp:'❓ Hjälp'},
+  krSuffix:' kr',
+  innehavH2:'Vad äger du på Avanza?',
+  innehavIntro:'Öppna din bank/mäklare (t.ex. Avanza) → <b>Min ekonomi / Innehav</b>. Skriv in <b>värdet i kronor</b> för varje fond precis som det visas. <b>Målvikt</b> = hur många procent du <i>vill</i> att fonden ska vara. Ticker behövs för kursdata – använd 🔍-sökningen nedan om du lägger till en ny fond (ISIN räcker inte).',
+  thNamn:'Namn',thTicker:'Ticker',thVikt:'Målvikt %',thVarde:'Värde (kr)',
+  btnNyRad:'+ Lägg till fond',btnSpara:'💾 Spara',btnSok:'Sök',
+  phNamn:'t.ex. Vanguard All-World',phTicker:'← ticker saknas!',
+  summaVardeL:'Summa värde:',summaViktL:'Summa målvikt:',
+  summaNot:'(vikterna normaliseras automatiskt om de inte blir exakt 100)',
+  sokH2:'🔍 Hitta ticker – sök på fondens namn',
+  sokIntro:'Vanliga fonder (Avanza Zero, Spiltan …) har kryptiska koder som <b>0P00005U1J.ST</b> – skriv namnet här så hittar jag koden. Klicka på en träff så läggs den till som ny rad ovan.',
+  sokPh:'t.ex. Avanza Zero',sokMinst:'Skriv minst 3 tecken.',sokSoker:'Söker …',
+  sokInget:f=>`Inga träffar på "${f}". Yahoo har inte alla fonder – prova en annan stavning (utan å/ä/ö kan hjälpa).`,
+  sokFel:e=>`Sökningen misslyckades (${e}) – prova igen.`,
+  sokKolla:'Kolla att typen stämmer (fond/ETF) innan du sparar.',
+  sokLaggTill:'+ Lägg till',
+  sokTillagd:(n,t)=>`✔ ${n} (${t}) tillagd som rad ovan – fyll i målvikt och värde, och glöm inte 💾 Spara.`,
+  typ:{MUTUALFUND:'fond',ETF:'ETF',EQUITY:'aktie'},
+  sparaTickerSaknas:'En rad saknar TICKER (fältet är tomt – grå text är bara exempel). Skriv in tickern eller använd 🔍-sökningen. Inget sparades.',
+  sparaMinstEn:'Minst en fond med ticker behövs.',
+  sparaKollar:'Kollar att alla tickers har kursdata …',
+  sparaTickerFel:t=>`"${t}" hittar ingen kursdata. Kolla tickern (börs-ändelse: .DE .L .AS .MI .ST).`,
+  sparaOk:k=>`Sparat! Kapital: ${k}`,sparaFel:'Kunde inte spara.',
+  rebalH2:'Rebalansering – tillbaka till dina målvikter',
+  rebalHint:'Rebalansera <b>1–2 gånger per år</b> eller när största avvikelsen passerar 5 procentenheter – inte oftare (courtage och spread äter små justeringar). Det här är din mekaniska "köp lågt, sälj högt" – ingen känsla, bara regler.',
+  rebalRaknar:'Räknar …',
+  rebalTotal:'Totalt värde:',rebalAvvik:'Största avvikelse:',
+  rebalDags:' → dags att rebalansera',rebalOk:' → inom det gröna, låt vara',
+  rebalTh:['Fond','Nu','Mål','Värde','Åtgärd'],
+  rebalKop:d=>`KÖP för ${d}`,rebalSalj:d=>`SÄLJ för ${d}`,rebalLat:'OK – låt vara',
+  gaugeH2:'Risk just nu',
+  pilForraL:'Jämfört med förra mätningen (~5 min)',pilIgarL:'Jämfört med igår',
+  pilManadL:'Jämfört med månadens start',gaugeVarL:'Möjlig förlust en dålig dag (1 av 20)',
+  gaugeHint:'Risk = senaste 30 dagarnas svängighet (volatilitet), uppräknad till årstakt. Uppdateras automatiskt var 5:e minut medan fliken är öppen. 🔴 = risken stiger · 🟢 = risken sjunker.',
+  gaugeNiva:['lugn marknad','normal marknad','förhöjd risk'],
+  gaugeFel:e=>`Kunde inte hämta (${e}) – försöker igen om 20 sekunder …`,
+  pilUpp:v=>`🔺 +${v} pp – RISK UPP`,pilNer:v=>`🔻 ${v} pp – risk ner`,
+  pilLika:'= oförändrad',pilIngen:'– ingen mätning än',
+  riskLaddar:'Hämtar 5 års historik … (kan ta upp till en minut första gången)',
+  riskPerFond:'Per fond',riskTh:['Fond','Vikt','Avk/år','Vol/år','Värsta fall','Sharpe'],
+  riskHela:'Hela portföljen',
+  riskRad:['Historisk avkastning/år','(inte prognos)','Volatilitet/år','Sharpe','Värsta historiska fall'],
+  riskForlora:'Vad kan jag förlora?',riskPa:'(på ',
+  riskKronor:['En dålig dag (1 av 20)','En riktigt dålig dag (1 av 100)','En dålig månad (grovt)','Verklig krasch (som värst i historiken)'],
+  riskKraschHint:'Det viktiga talet är <b>verklig krasch</b> – det har faktiskt hänt. Kan du sitta still genom det utan att sälja? Om inte: öka räntor/guld under Innehav.',
+  riskKorrH2:'Diversifiering (korrelation)',
+  riskKorrHint:'<span class="rod">Rött</span> = över 0,90, två fonder som rör sig nästan identiskt (falsk diversifiering). <span class="gron">Grönt</span> = under 0,30, äkta krockkudde.',
+  riskSaknas:t=>`Ingen kursdata för: ${t} – kolla tickern under Innehav.`,
+  stressLaddar:'Räknar scenarier … (tar några sekunder)',
+  stressH2:tot=>`Om katastrofen kommer – vad händer med dina ${tot}?`,
+  stressIntro:'Fyra historiska mardrömmar, applicerade på din portfölj som den ser ut NU. Varje fonds känslighet (beta) är mätt mot världsindex i SEK på veckodata. Klicka på ett scenario för att se fond för fond.',
+  stressTh:['Fond','Värde','Antagande','Rörelse','Kronor'],
+  stressAntag:{ranta:'räntefond',okand:'okänd – antar full aktiechock',beta:b=>`beta ${b}`},
+  stressVarning:m=>`⚠️ <b>Ärlig varning:</b> detta är räkneexempel, inte prognoser. ${m} Verkliga krascher följer aldrig manus – de kan bli mildare, värre eller helt annorlunda. Poängen är att se STORLEKSORDNINGEN i kronor innan det händer, så du inte säljer i panik när det händer.`,
+  meritLaddar:'Räknar din portfölj mot benchmark … (tar några sekunder)',
+  meritH2:'Min portfölj mot benchmark',meritKopHallit:', köpt & hållit)',
+  meritTh:['','Värt nu','Totalt','Snitt','Värsta fall','Sharpe'],
+  meritNamn:{min:'Min portfölj',vwce:'100% VWCE',b6040:'Enkel 60/40'},
+  meritSlar:(n,d)=>`Du SLÅR ${n} riskjusterat (+${d} Sharpe).`,
+  meritForlorar:(n,d)=>`${n} är bättre riskjusterat (${d} Sharpe) – överväg att förenkla.`,
+  meritLika:n=>`Likvärdigt med ${n} – komplexiteten tillför lite.`,
+  meritHint:'Sharpe (avkastning per enhet risk) är den ärligaste jämförelsen – 100% VWCE tar mycket mer risk. Och kom ihåg: historik ≠ framtid.',
+  felServerNere:'⛔ Appen (servern) verkar inte vara igång. Starta den med skrivbordsikonen <b>"Jane Street - STARTA"</b> och tryck sedan Försök igen.',
+  felGenerisk:e=>`Kunde inte hämta data (${e}). Yahoo kan strula tillfälligt eller så tappade nätet.`,
+  felForsokIgen:'🔄 Försök igen',
+  discRubrik:'⚠️ Viktig information – läs innan du börjar',
+  discPunkter:[
+    '<b>1. Detta är inte finansiell rådgivning.</b> Appen visar statistik och räkneexempel om en portfölj som du själv matar in. Den ger aldrig personliga rekommendationer och säger aldrig åt dig att köpa eller sälja något.',
+    '<b>2. Alla siffror bygger på historisk kursdata.</b> Historik är inte en prognos. Framtida förluster kan bli större än alla historiska mått och scenarier som visas – inklusive "värsta fall" och stresstester.',
+    '<b>3. Data kan innehålla fel.</b> Kursdata hämtas från en extern källa (Yahoo Finance) och kan vara fördröjd, ofullständig eller felaktig.',
+    '<b>4. Investeringar innebär risk.</b> Värdet på fonder och ETF:er kan både stiga och falla, och du kan förlora hela det investerade kapitalet. Alla investeringsbeslut är dina egna och fattas på egen risk.',
+    '<b>5. Inga garantier.</b> Appen tillhandahålls i befintligt skick ("as is") utan några garantier. Skaparna ansvarar inte för ekonomiska förluster eller andra skador som uppstår vid användning av appen eller dess beräkningar.'],
+  discKnapp:'Jag förstår – visa mig risken, inte löften',
+  hjalpHtml:`
+  <div class="panel hjalp-panel" style="border-color:var(--gul)">
+    <h2>⚠️ Friskrivning</h2>
+    <p>Denna app är <b>inte finansiell rådgivning</b> och ger aldrig köp- eller säljrekommendationer. Alla mått bygger på <b>historisk kursdata</b> från extern källa (Yahoo Finance) som kan vara fördröjd eller felaktig – och historik är ingen prognos: framtida förluster kan bli större än alla visade "värsta fall" och stresscenarier. Investeringar kan öka och minska i värde och du kan förlora hela ditt kapital. Appen tillhandahålls i befintligt skick ("as is") utan garantier, och skaparna ansvarar inte för ekonomiska förluster som uppstår vid användning. <b>Alla investeringsbeslut är dina egna.</b></p>
+    <p class="hint" style="margin-top:8px">Vill du läsa hela texten igen?
+      <a href="#" style="color:var(--bla)" onclick="localStorage.removeItem('friskrivning_ok');location.reload();return false">Visa startrutan på nytt</a></p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>Så hänger appen ihop</h2>
+    <p>Allt utgår från <b>🏦 Innehav</b> – listan över vad du äger. När du sparar där räknar alla andra flikar om sig automatiskt. Kursdata hämtas från Yahoo Finance (gratis, offentlig) direkt på din dator. Appen kör bara lokalt, loggar aldrig in någonstans och kan inte köpa eller sälja något.</p>
+    <p class="hint" style="margin-top:8px">Innehav → (Rebalansering · Mätare · Risk · Stresstest · Meritlista)</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>📐 Volatilitet – "hur mycket skakar det?"</h2>
+    <p>Vi tar varje dags kursrörelse i procent och mäter hur <i>spridda</i> de är kring sitt genomsnitt. Det måttet heter <b>standardavvikelse</b> och kommer från <b>Carl Friedrich Gauss</b> (1800-talet) – samma matte som ligger bakom normalfördelningens "klockkurva". För att göra om dagsskakning till årsskakning multiplicerar vi med <b>√252</b> (det finns ~252 börsdagar på ett år). Att risk växer med <i>roten ur tiden</i> visades först av <b>Louis Bachelier</b> år 1900 – en fransk doktorand som beskrev börskurser som slumpvandring fem år före Einstein använde samma matte för molekyler. Hans handledare tyckte ämnet var ovärdigt; idag är avhandlingen grunden för all modern finansmatte.</p>
+    <p class="hint">Formel: volatilitet per år = standardavvikelse(dagliga avkastningar) × √252</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🔗 Korrelation & diversifiering – "äger jag samma sak två gånger?"</h2>
+    <p><b>Korrelation</b> (uppfanns av <b>Karl Pearson</b>, 1890-talet) mäter om två fonder rör sig i takt: 1,0 = identiskt, 0 = oberoende. Att detta är <i>nyckeln</i> till en bra portfölj visade <b>Harry Markowitz</b> 1952, som 25-årig doktorand: portföljens risk beror inte bara på vad varje innehav gör – utan på hur de rör sig <i>tillsammans</i>. Två riskabla saker som rör sig olika kan ihop bli trygga. Det gav honom Nobelpriset 1990 och kallas "den enda gratislunchen i finans".</p>
+    <p class="hint">I Risk-fliken: rött = över 0,90 (dubblett), grönt = under 0,30 (äkta krockkudde).</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>⚖️ Sharpe-kvot – "fick jag betalt för risken?"</h2>
+    <p>Uppfanns av <b>William Sharpe</b> 1966 (Nobelpris 1990, delat med Markowitz). Idén: avkastning i sig säger inget – frågan är hur mycket avkastning du fick <i>per enhet risk</i>. En fond som ger +10% med små gupp är bättre än en som ger +12% med magsjuka svängningar. Därför dömer Meritlistan på Sharpe, inte bara kronor.</p>
+    <p class="hint">Formel: Sharpe = (avkastning − riskfri ränta) ÷ volatilitet. Över 1 = bra · 0,5–1 = ok · under 0,5 = svagt.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🎯 Beta – "hur hårt slår marknaden mot just den här fonden?"</h2>
+    <p>Kommer från <b>CAPM</b>-modellen (<b>Sharpe, Lintner, Treynor, Mossin</b> – 1960-talet). Beta = 1 betyder "rör sig som marknaden", 1,33 = "svänger 33% mer åt båda hållen", 0,6 = lugnare än marknaden. Stresstestet använder beta: om världsindex faller 40% antas en fond med beta 1,33 falla ~53%. Vi mäter beta på <b>veckodata</b> – fonder sätter sina kurser vid olika tidpunkter, och på dagsdata ser de därför falskt oberoende ut.</p>
+    <p class="hint">Formel: beta = kovarians(fond, marknad) ÷ varians(marknad)</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>💸 Value at Risk (VaR) – "vad kan jag förlora en dålig dag?"</h2>
+    <p>Populariserades av bankjätten <b>J.P. Morgan</b> på 1990-talet. Deras VD <b>Dennis Weatherstone</b> tröttnade på sidvis med rapporter och krävde EN siffra varje dag kl 16:15: <i>"hur mycket kan vi förlora imorgon?"</i> Systemet (RiskMetrics, 1994) släpptes fritt och blev världsstandard. Vår variant är den <b>historiska</b>: vi radar upp alla dagsrörelser portföljen haft och läser av den 5:e sämsta percentilen – "en sån dag kommer ungefär 1 gång av 20". Inga antaganden om snälla klockkurvor; bara det som faktiskt hänt.</p>
+    <p class="hint">Mätare-fliken visar samma sak löpande: 30 dagars volatilitet + VaR i kronor.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>📉 Max drawdown – "värsta fallet från topp till botten"</h2>
+    <p>Det ärligaste måttet av alla, och det behövde ingen professor: ta värdekurvan, hitta det djupaste fallet från en topp till efterföljande botten. Det är siffran som avgör om du <i>klarar</i> din portfölj – för den mäter exakt det du kommer känna i magen. All forskning om sparande visar samma sak: det som förstör småsparares avkastning är inte fel fonder, utan att man <b>säljer i paniken på botten</b>. Kan du se din max drawdown i kronor i förväg och säga "det klarar jag" – då vinner du.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🌪️ Stresstest – "om katastrofen kommer"</h2>
+    <p>Efter finanskrisen 2008 – när bankernas VaR-modeller visat sig blinda för riktiga katastrofer – gjorde regulatorerna <b>stresstester</b> obligatoriska för banker världen över. Idén är äldre (faktormodeller byggdes av <b>Barr Rosenberg</b> på 1970-talet, det blev företaget Barra som proffsen använder än idag): spela upp historiska mardrömmar mot din portfölj som den ser ut <i>nu</i>. Vår version: fyra riktiga kriser, varje fonds beta avgör hur hårt den träffas, räntefonder får det räntefonder faktiskt gjorde i respektive kris.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🔄 Rebalansering – "köp lågt, sälj högt – mekaniskt"</h2>
+    <p>Du bestämmer målvikter. Med tiden glider portföljen – det som stigit väger mer. Rebalansering säljer det som blivit för stort och köper det som blivit för litet: <b>köp lågt, sälj högt utan att någonsin behöva gissa</b>. Forskningen (bl.a. <b>William Bernstein</b>) visar att 1–2 gånger per år eller vid ±5 procentenheters avvikelse räcker – oftare äter avgifterna upp vinsten.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🏆 Meritlistan – "slår jag ett dumt enkelt alternativ?"</h2>
+    <p>Benchmark-tänket kommer från <b>John Bogle</b>, som 1976 startade första indexfonden för vanligt folk ("Bogles dårskap" kallades den – idag förvaltar idén biljoner) och <b>William Sharpes</b> uppsats <i>"The Arithmetic of Active Management"</i> (1991): <b>genomsnittsförvaltaren MÅSTE förlora mot index efter avgifter – det är aritmetik, inte åsikt.</b> Därför jämförs du alltid mot "äg världen, gör inget" (VWCE) och "tråkiga 60/40". Slår du dem inte riskjusterat är förenkling det rationella draget.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>⚠️ Det matten INTE kan (läs detta då och då)</h2>
+    <p><b>1. Allt är bakspegel.</b> Varje siffra bygger på historik. Nästa kris kan bli värre än alla scenarier.<br>
+    <b>2. Korrelationer sviker i kris.</b> Saker som brukar röra sig olika faller ofta ihop <i>samtidigt</i> i panik – precis när du behöver skyddet.<br>
+    <b>3. Fondkurser släpar.</b> NAV sätts en gång om dagen vid olika tidpunkter – därför mäts beta på veckodata.<br>
+    <b>4. Ingen prediktion finns.</b> Appen säger aldrig "köp nu" – den visar bara priset i kronor för den risk du redan valt. Beslutet är alltid ditt.</p>
+  </div>`
+},
+en: {
+  titel:'📊 My Risk Dashboard', undertitel:'runs locally · no login · never touches real money',
+  langKnapp:'🌐 Svenska',
+  flik:{innehav:'🏦 Holdings',rebalans:'⚖️ Rebalancing',matare:'🌡️ Gauge',risk:'🛡️ Risk',
+        stress:'🌪️ Stress Test',merit:'🏆 Track Record',hjalp:'❓ Help'},
+  krSuffix:' SEK',
+  innehavH2:'What do you own?',
+  innehavIntro:'Open your bank/broker (e.g. Avanza) → <b>your holdings page</b>. Enter the <b>value in SEK</b> for each fund exactly as shown. <b>Target weight</b> = the percentage you <i>want</i> the fund to be. A ticker is needed for price data – use the 🔍 search below when adding a new fund (an ISIN is not enough).',
+  thNamn:'Name',thTicker:'Ticker',thVikt:'Target %',thVarde:'Value (SEK)',
+  btnNyRad:'+ Add fund',btnSpara:'💾 Save',btnSok:'Search',
+  phNamn:'e.g. Vanguard All-World',phTicker:'← ticker missing!',
+  summaVardeL:'Total value:',summaViktL:'Total target weight:',
+  summaNot:'(weights are normalized automatically if they do not sum to exactly 100)',
+  sokH2:'🔍 Find a ticker – search by fund name',
+  sokIntro:'Regular mutual funds often have cryptic codes like <b>0P00005U1J.ST</b> – type the name here and I will find the code. Click a match to add it as a new row above.',
+  sokPh:'e.g. Avanza Zero',sokMinst:'Type at least 3 characters.',sokSoker:'Searching …',
+  sokInget:f=>`No matches for "${f}". Yahoo does not carry every fund – try a different spelling.`,
+  sokFel:e=>`Search failed (${e}) – try again.`,
+  sokKolla:'Check that the type looks right (fund/ETF) before saving.',
+  sokLaggTill:'+ Add',
+  sokTillagd:(n,t)=>`✔ ${n} (${t}) added as a row above – fill in target weight and value, and remember to 💾 Save.`,
+  typ:{MUTUALFUND:'fund',ETF:'ETF',EQUITY:'stock'},
+  sparaTickerSaknas:'A row is missing its TICKER (the field is empty – grey text is just an example). Enter the ticker or use the 🔍 search. Nothing was saved.',
+  sparaMinstEn:'At least one fund with a ticker is required.',
+  sparaKollar:'Checking that all tickers have price data …',
+  sparaTickerFel:t=>`"${t}" has no price data. Check the ticker (exchange suffix: .DE .L .AS .MI .ST).`,
+  sparaOk:k=>`Saved! Capital: ${k}`,sparaFel:'Could not save.',
+  rebalH2:'Rebalancing – back to your target weights',
+  rebalHint:'Rebalance <b>1–2 times per year</b> or when the largest deviation passes 5 percentage points – not more often (commissions and spreads eat small adjustments). This is your mechanical "buy low, sell high" – no feelings, just rules.',
+  rebalRaknar:'Calculating …',
+  rebalTotal:'Total value:',rebalAvvik:'Largest deviation:',
+  rebalDags:' → time to rebalance',rebalOk:' → within the green zone, leave it',
+  rebalTh:['Fund','Now','Target','Value','Action'],
+  rebalKop:d=>`BUY ${d}`,rebalSalj:d=>`SELL ${d}`,rebalLat:'OK – leave as is',
+  gaugeH2:'Risk right now',
+  pilForraL:'Vs previous reading (~5 min)',pilIgarL:'Vs yesterday',
+  pilManadL:'Vs start of month',gaugeVarL:'Possible loss on a bad day (1 in 20)',
+  gaugeHint:'Risk = the last 30 days of volatility, annualized. Refreshes automatically every 5 minutes while this tab is open. 🔴 = risk rising · 🟢 = risk falling.',
+  gaugeNiva:['calm market','normal market','elevated risk'],
+  gaugeFel:e=>`Could not fetch (${e}) – retrying in 20 seconds …`,
+  pilUpp:v=>`🔺 +${v} pp – RISK UP`,pilNer:v=>`🔻 ${v} pp – risk down`,
+  pilLika:'= unchanged',pilIngen:'– no reading yet',
+  riskLaddar:'Fetching 5 years of history … (can take up to a minute the first time)',
+  riskPerFond:'Per fund',riskTh:['Fund','Weight','Ret/yr','Vol/yr','Worst fall','Sharpe'],
+  riskHela:'Whole portfolio',
+  riskRad:['Historical return/yr','(not a forecast)','Volatility/yr','Sharpe','Worst historical fall'],
+  riskForlora:'What could I lose?',riskPa:'(on ',
+  riskKronor:['A bad day (1 in 20)','A really bad day (1 in 100)','A bad month (rough)','A real crash (worst in history)'],
+  riskKraschHint:'The number that matters is <b>a real crash</b> – it actually happened. Could you sit through it without selling? If not: increase bonds/gold under Holdings.',
+  riskKorrH2:'Diversification (correlation)',
+  riskKorrHint:'<span class="rod">Red</span> = above 0.90, two funds moving almost identically (false diversification). <span class="gron">Green</span> = below 0.30, a genuine crash cushion.',
+  riskSaknas:t=>`No price data for: ${t} – check the ticker under Holdings.`,
+  stressLaddar:'Running scenarios … (takes a few seconds)',
+  stressH2:tot=>`If disaster strikes – what happens to your ${tot}?`,
+  stressIntro:'Four historical nightmares, applied to your portfolio as it looks NOW. Each fund\'s sensitivity (beta) is measured against a world index in SEK on weekly data. Click a scenario to see fund by fund.',
+  stressTh:['Fund','Value','Assumption','Move','SEK'],
+  stressAntag:{ranta:'bond fund',okand:'unknown – assumes full equity shock',beta:b=>`beta ${b}`},
+  stressVarning:m=>`⚠️ <b>Honest warning:</b> these are worked examples, not forecasts. ${m} Real crashes never follow a script – they can be milder, worse or entirely different. The point is to see the ORDER OF MAGNITUDE in money before it happens, so you don\'t panic-sell when it happens.`,
+  meritLaddar:'Comparing your portfolio to benchmarks … (takes a few seconds)',
+  meritH2:'My portfolio vs benchmarks',meritKopHallit:', buy & hold)',
+  meritTh:['','Worth now','Total','Avg','Worst fall','Sharpe'],
+  meritNamn:{min:'My portfolio',vwce:'100% VWCE',b6040:'Simple 60/40'},
+  meritSlar:(n,d)=>`You BEAT ${n} risk-adjusted (+${d} Sharpe).`,
+  meritForlorar:(n,d)=>`${n} is better risk-adjusted (${d} Sharpe) – consider simplifying.`,
+  meritLika:n=>`On par with ${n} – the complexity adds little.`,
+  meritHint:'Sharpe (return per unit of risk) is the most honest comparison – 100% VWCE takes far more risk. And remember: history ≠ future.',
+  felServerNere:'⛔ The app (server) does not appear to be running. Start it with the desktop icon <b>"Jane Street - STARTA"</b>, then click Try again.',
+  felGenerisk:e=>`Could not fetch data (${e}). Yahoo may be having a hiccup, or the network dropped.`,
+  felForsokIgen:'🔄 Try again',
+  discRubrik:'⚠️ Important information – read before you start',
+  discPunkter:[
+    '<b>1. This is not financial advice.</b> The app shows statistics and worked examples for a portfolio that you enter yourself. It never gives personal recommendations and never tells you to buy or sell anything.',
+    '<b>2. All figures are based on historical price data.</b> History is not a forecast. Future losses can exceed every historical measure and scenario shown – including "worst fall" and stress tests.',
+    '<b>3. Data may contain errors.</b> Price data comes from an external source (Yahoo Finance) and can be delayed, incomplete or wrong.',
+    '<b>4. Investing involves risk.</b> The value of funds and ETFs can rise and fall, and you can lose all invested capital. All investment decisions are your own and made at your own risk.',
+    '<b>5. No warranties.</b> The app is provided "as is" without any warranties. The creators accept no liability for financial losses or other damages arising from use of the app or its calculations.'],
+  discKnapp:'I understand – show me the risk, not promises',
+  hjalpHtml:`
+  <div class="panel hjalp-panel" style="border-color:var(--gul)">
+    <h2>⚠️ Disclaimer</h2>
+    <p>This app is <b>not financial advice</b> and never gives buy or sell recommendations. All measures are based on <b>historical price data</b> from an external source (Yahoo Finance) which can be delayed or wrong – and history is no forecast: future losses can exceed every "worst fall" and stress scenario shown. Investments can rise and fall in value and you can lose all your capital. The app is provided "as is" without warranties, and the creators accept no liability for financial losses arising from its use. <b>All investment decisions are your own.</b></p>
+    <p class="hint" style="margin-top:8px">Want to read the full text again?
+      <a href="#" style="color:var(--bla)" onclick="localStorage.removeItem('friskrivning_ok');location.reload();return false">Show the startup notice again</a></p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>How the app fits together</h2>
+    <p>Everything starts from <b>🏦 Holdings</b> – the list of what you own. When you save there, every other tab recalculates automatically. Price data is fetched from Yahoo Finance (free, public) directly on your computer. The app runs locally only, never logs in anywhere, and cannot buy or sell anything.</p>
+    <p class="hint" style="margin-top:8px">Holdings → (Rebalancing · Gauge · Risk · Stress Test · Track Record)</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>📐 Volatility – "how much does it shake?"</h2>
+    <p>We take each day's price move in percent and measure how <i>spread out</i> they are around their average. That measure is the <b>standard deviation</b>, from <b>Carl Friedrich Gauss</b> (19th century) – the same math behind the bell curve. To turn daily shaking into yearly shaking we multiply by <b>√252</b> (there are ~252 trading days in a year). That risk grows with the <i>square root of time</i> was first shown by <b>Louis Bachelier</b> in 1900 – a French PhD student who described stock prices as a random walk five years before Einstein used the same math for molecules. His advisor found the topic unworthy; today his thesis underpins all of modern quantitative finance.</p>
+    <p class="hint">Formula: annual volatility = standard deviation(daily returns) × √252</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🔗 Correlation & diversification – "do I own the same thing twice?"</h2>
+    <p><b>Correlation</b> (invented by <b>Karl Pearson</b>, 1890s) measures whether two funds move in step: 1.0 = identically, 0 = independently. That this is <i>the key</i> to a good portfolio was shown by <b>Harry Markowitz</b> in 1952, as a 25-year-old PhD student: a portfolio's risk depends not just on what each holding does – but on how they move <i>together</i>. Two risky things that move differently can be safe combined. It earned him the 1990 Nobel Prize and is called "the only free lunch in finance".</p>
+    <p class="hint">In the Risk tab: red = above 0.90 (duplicate), green = below 0.30 (a genuine cushion).</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>⚖️ Sharpe ratio – "was I paid for the risk?"</h2>
+    <p>Invented by <b>William Sharpe</b> in 1966 (Nobel Prize 1990, shared with Markowitz). The idea: return by itself says nothing – the question is how much return you got <i>per unit of risk</i>. A fund returning +10% with small bumps beats one returning +12% with stomach-churning swings. That is why the Track Record judges on Sharpe, not just money.</p>
+    <p class="hint">Formula: Sharpe = (return − risk-free rate) ÷ volatility. Above 1 = good · 0.5–1 = OK · below 0.5 = weak.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🎯 Beta – "how hard does the market hit this particular fund?"</h2>
+    <p>From the <b>CAPM</b> model (<b>Sharpe, Lintner, Treynor, Mossin</b> – 1960s). Beta = 1 means "moves like the market", 1.33 = "swings 33% more in both directions", 0.6 = calmer than the market. The stress test uses beta: if the world index falls 40%, a fund with beta 1.33 is assumed to fall ~53%. We measure beta on <b>weekly data</b> – funds set their prices at different times of day, so daily data makes them look falsely independent.</p>
+    <p class="hint">Formula: beta = covariance(fund, market) ÷ variance(market)</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>💸 Value at Risk (VaR) – "what could I lose on a bad day?"</h2>
+    <p>Popularized by <b>J.P. Morgan</b> in the 1990s. Their CEO <b>Dennis Weatherstone</b> was tired of stacks of reports and demanded ONE number every day at 4:15 pm: <i>"how much can we lose tomorrow?"</i> The system (RiskMetrics, 1994) was released publicly and became the world standard. Our variant is the <b>historical</b> one: we line up every daily move your portfolio has had and read off the 5th-worst percentile – "a day like that comes about 1 in 20". No assumptions about friendly bell curves; just what actually happened.</p>
+    <p class="hint">The Gauge tab shows the same thing live: 30-day volatility + VaR in money.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>📉 Max drawdown – "the worst fall from peak to trough"</h2>
+    <p>The most honest measure of all, and it needed no professor: take the value curve, find the deepest fall from a peak to the following trough. It is the number that decides whether you can <i>handle</i> your portfolio – because it measures exactly what you will feel in your gut. All research on retail investing shows the same thing: what destroys returns is not picking the wrong funds, but <b>selling in a panic at the bottom</b>. If you can see your max drawdown in money beforehand and say "I can take that" – you win.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🌪️ Stress test – "if disaster strikes"</h2>
+    <p>After the 2008 financial crisis – when the banks' VaR models proved blind to real catastrophes – regulators made <b>stress tests</b> mandatory for banks worldwide. The idea is older (factor models were built by <b>Barr Rosenberg</b> in the 1970s, becoming Barra, which professionals still use): replay historical nightmares against your portfolio as it looks <i>now</i>. Our version: four real crises, each fund's beta decides how hard it is hit, bond funds get what bond funds actually did in each crisis.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🔄 Rebalancing – "buy low, sell high – mechanically"</h2>
+    <p>You set target weights. Over time the portfolio drifts – what has risen weighs more. Rebalancing sells what has grown too big and buys what has become too small: <b>buy low, sell high without ever having to guess</b>. Research (e.g. <b>William Bernstein</b>) shows 1–2 times per year, or at ±5 percentage points deviation, is enough – more often and fees eat the benefit.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>🏆 Track Record – "do I beat a dumb simple alternative?"</h2>
+    <p>Benchmark thinking comes from <b>John Bogle</b>, who in 1976 launched the first index fund for ordinary people (mocked as "Bogle's folly" – today the idea manages trillions) and <b>William Sharpe's</b> paper <i>"The Arithmetic of Active Management"</i> (1991): <b>the average active manager MUST lose to the index after fees – it is arithmetic, not opinion.</b> That is why you are always compared to "own the world, do nothing" (VWCE) and "boring 60/40". If you don't beat them risk-adjusted, simplifying is the rational move.</p>
+  </div>
+  <div class="panel hjalp-panel">
+    <h2>⚠️ What the math CANNOT do (re-read this occasionally)</h2>
+    <p><b>1. Everything is a rear-view mirror.</b> Every figure is built on history. The next crisis can be worse than every scenario.<br>
+    <b>2. Correlations fail in a crisis.</b> Things that usually move differently often fall <i>together</i> in a panic – exactly when you need the protection.<br>
+    <b>3. Fund prices lag.</b> NAVs are set once a day at different times – which is why beta is measured on weekly data.<br>
+    <b>4. There is no prediction.</b> The app never says "buy now" – it only shows the price in money of the risk you have already chosen. The decision is always yours.</p>
+  </div>`
+}};
+const L = T[LANG];
+
+/* ==================== Grund ==================== */
+const $ = s => document.querySelector(s);
+const kr = x => (x==null?'–':Math.round(x).toLocaleString('sv-SE')+L.krSuffix);
+let gaugeTimer = null, laddat = {};
+
+function fyllStatiskt(){
+  document.documentElement.lang = LANG;
+  $('#tTitel').textContent=L.titel; $('#tUndertitel').textContent=L.undertitel;
+  $('#langBtn').textContent=L.langKnapp;
+  document.querySelectorAll('nav button').forEach(b=>b.textContent=L.flik[b.dataset.flik]);
+  $('#tInnehavH2').textContent=L.innehavH2; $('#tInnehavIntro').innerHTML=L.innehavIntro;
+  $('#thNamn').textContent=L.thNamn; $('#thTicker').textContent=L.thTicker;
+  $('#thVikt').textContent=L.thVikt; $('#thVarde').textContent=L.thVarde;
+  $('#tBtnNyRad').textContent=L.btnNyRad; $('#tBtnSpara').textContent=L.btnSpara;
+  $('#tSummaVardeL').textContent=L.summaVardeL; $('#tSummaViktL').textContent=L.summaViktL;
+  $('#tSummaNot').textContent=' '+L.summaNot;
+  $('#tSokH2').textContent=L.sokH2; $('#tSokIntro').innerHTML=L.sokIntro;
+  $('#sokFalt').placeholder=L.sokPh; $('#tBtnSok').textContent=L.btnSok;
+  $('#tRebalH2').textContent=L.rebalH2; $('#tRebalHint').innerHTML=L.rebalHint;
+  $('#rebalansInnehall').textContent=L.rebalRaknar;
+  $('#tGaugeH2').textContent=L.gaugeH2;
+  $('#tPilForraL').textContent=L.pilForraL; $('#tPilIgarL').textContent=L.pilIgarL;
+  $('#tPilManadL').textContent=L.pilManadL; $('#tGaugeVarL').textContent=L.gaugeVarL;
+  $('#tGaugeHint').innerHTML=L.gaugeHint;
+  $('#riskInnehall').textContent=L.riskLaddar;
+  $('#stressInnehall').textContent=L.stressLaddar;
+  $('#meritInnehall').textContent=L.meritLaddar;
+  $('#flik-hjalp').innerHTML=L.hjalpHtml;
+  $('#friskrivning').innerHTML=`
+    <div class="panel" style="max-width:640px;margin:0 auto;border-color:var(--gul)">
+      <h2 style="font-size:20px">${L.discRubrik}</h2>
+      <div style="line-height:1.7;margin-top:10px">
+        ${L.discPunkter.map(p=>`<p style="margin-top:8px">${p}</p>`).join('')}
+      </div>
+      <button class="knapp grov" style="margin-top:16px;width:100%"
+        onclick="localStorage.setItem('friskrivning_ok','1');document.getElementById('friskrivning').style.display='none'">
+        ${L.discKnapp}</button>
+    </div>`;
+}
+
+function visa(flik){
+  document.querySelectorAll('.flik').forEach(f=>f.classList.remove('visas'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('aktiv'));
+  $('#flik-'+flik).classList.add('visas');
+  document.querySelector(`nav button[data-flik="${flik}"]`).classList.add('aktiv');
+  if(flik==='matare'){ hamtaGauge(); if(!gaugeTimer) gaugeTimer=setInterval(hamtaGauge,300000); }
+  else { if(gaugeTimer){clearInterval(gaugeTimer);gaugeTimer=null;} }
+  if(flik==='rebalans') hamtaRebalans();
+  if(flik==='risk' && !laddat.risk) hamtaRisk();
+  if(flik==='stress' && !laddat.stress) hamtaStress();
+  if(flik==='merit' && !laddat.merit) hamtaMerit();
+}
+
+/* ---------- Felsäker hämtning ---------- */
+async function hamtaJson(url, el, forsokIgenFn){
+  try{
+    const svar = await fetch(url);
+    if(!svar.ok) throw new Error('status '+svar.status);
+    return await svar.json();
+  }catch(e){
+    const serverNere = e instanceof TypeError;
+    el.className='';
+    el.innerHTML = `<div class="panel">
+      <div class="medd fel" style="display:block">${serverNere?L.felServerNere:L.felGenerisk(e.message)}</div>
+      <button class="knapp" onclick="${forsokIgenFn}()">${L.felForsokIgen}</button></div>`;
+    return null;
+  }
+}
+
+/* ---------- Innehav / Holdings ---------- */
+function radHtml(h){
+  return `<tr>
+    <td><input value="${h.namn||''}" class="f-namn" placeholder="${L.phNamn}"></td>
+    <td><input value="${h.ticker||''}" class="f-ticker" placeholder="${L.phTicker}" style="width:110px"></td>
+    <td><input value="${h.vikt!=null?Math.round(h.vikt*1000)/10:''}" class="f-vikt" type="number" step="0.5" style="width:80px"></td>
+    <td><input value="${h.varde_kr||''}" class="f-varde" type="number" step="1" placeholder="0" style="width:120px"></td>
+    <td><button class="knapp tunn" onclick="this.closest('tr').remove();summera()">✕</button></td>
+  </tr>`;
+}
+function nyRad(){ $('#tabInnehav tbody').insertAdjacentHTML('beforeend', radHtml({})); }
+async function hamtaInnehav(){
+  const d = await (await fetch('/api/portfolio')).json();
+  $('#tabInnehav tbody').innerHTML = d.innehav.map(radHtml).join('');
+  summera();
+  document.querySelectorAll('#tabInnehav input').forEach(i=>i.addEventListener('input',summera));
+}
+function lasRader(){
+  return [...document.querySelectorAll('#tabInnehav tbody tr')].map(tr=>({
+    namn: tr.querySelector('.f-namn').value.trim(),
+    ticker: tr.querySelector('.f-ticker').value.trim(),
+    vikt: (parseFloat(tr.querySelector('.f-vikt').value)||0)/100,
+    varde_kr: parseFloat(tr.querySelector('.f-varde').value)||0,
+  })).filter(h=>h.ticker);
+}
+function summera(){
+  const r = lasRader();
+  $('#summaVarde').textContent = kr(r.reduce((s,h)=>s+h.varde_kr,0));
+  $('#summaVikt').textContent = Math.round(r.reduce((s,h)=>s+h.vikt,0)*1000)/10+' %';
+}
+async function sokFond(){
+  const el = $('#sokResultat');
+  const fraga = $('#sokFalt').value.trim();
+  if(fraga.length < 3){ el.innerHTML=`<p class="hint">${L.sokMinst}</p>`; return; }
+  el.innerHTML = `<p class="hint">${L.sokSoker}</p>`;
+  try{
+    const d = await (await fetch('/api/sok?namn='+encodeURIComponent(fraga))).json();
+    if(!d.traffar.length){ el.innerHTML = `<p class="hint">${L.sokInget(fraga)}</p>`; return; }
+    el.innerHTML = `<table><thead><tr><th>${L.thNamn}</th><th>${L.thTicker}</th><th></th><th></th><th></th></tr></thead><tbody>`+
+      d.traffar.map(t=>{
+        const typ = L.typ[t.typ_kod] || t.typ;
+        return `<tr><td>${t.namn}</td><td>${t.ticker}</td><td>${typ}</td><td>${t.bors||''}</td>
+        <td><button class="knapp tunn" onclick='laggTillTraff(${JSON.stringify(t.ticker)}, ${JSON.stringify(t.namn)})'>${L.sokLaggTill}</button></td></tr>`;
+      }).join('')+
+      `</tbody></table><p class="hint">${L.sokKolla}</p>`;
+  }catch(e){ el.innerHTML = `<p class="hint">${L.sokFel(e.message)}</p>`; }
+}
+function laggTillTraff(ticker, namn){
+  const visNamn = (namn && namn!==ticker) ? namn : $('#sokFalt').value.trim();
+  $('#tabInnehav tbody').insertAdjacentHTML('beforeend',
+    radHtml({namn: visNamn, ticker: ticker, vikt: 0, varde_kr: 0}));
+  document.querySelectorAll('#tabInnehav input').forEach(i=>i.addEventListener('input',summera));
+  summera();
+  $('#sokResultat').innerHTML = `<p class="gron">${L.sokTillagd(visNamn,ticker)}</p>`;
+}
+async function sparaInnehav(){
+  const m = $('#meddInnehav'); m.className='medd';
+  const utanTicker = [...document.querySelectorAll('#tabInnehav tbody tr')].filter(tr=>{
+    const t = tr.querySelector('.f-ticker').value.trim();
+    const harInnehall = tr.querySelector('.f-namn').value.trim() ||
+      parseFloat(tr.querySelector('.f-vikt').value)>0 || parseFloat(tr.querySelector('.f-varde').value)>0;
+    return !t && harInnehall;
+  });
+  if(utanTicker.length){
+    m.className='medd fel'; m.textContent=L.sparaTickerSaknas;
+    utanTicker.forEach(tr=>tr.querySelector('.f-ticker').style.outline='2px solid var(--rod)');
+    return;
+  }
+  const rader = lasRader();
+  if(!rader.length){ m.className='medd fel'; m.textContent=L.sparaMinstEn; return; }
+  m.className='medd ok'; m.textContent=L.sparaKollar;
+  for(const h of rader){
+    const t = await (await fetch('/api/testa_ticker?ticker='+encodeURIComponent(h.ticker))).json();
+    if(!t.ok){ m.className='medd fel'; m.textContent=L.sparaTickerFel(h.ticker); return; }
+  }
+  const svar = await fetch('/api/portfolio',{method:'POST',
+    headers:{'Content-Type':'application/json'}, body:JSON.stringify({innehav:rader})});
+  const j = await svar.json();
+  if(j.ok){ m.className='medd ok'; m.textContent=L.sparaOk(kr(j.kapital)); laddat={}; }
+  else{ m.className='medd fel'; m.textContent=(LANG==='en'&&j.fel_en)||j.fel||L.sparaFel; }
+}
+
+/* ---------- Rebalansering / Rebalancing ---------- */
+async function hamtaRebalans(){
+  const el = $('#rebalansInnehall'); el.className='laddar'; el.textContent=L.rebalRaknar;
+  const d = await hamtaJson('/api/rebalans', el, 'hamtaRebalans');
+  if(!d) return;
+  if(d.fel){ el.className=''; el.innerHTML=`<div class="medd fel" style="display:block">${(LANG==='en'&&d.fel_en)||d.fel}</div>`; return; }
+  const rader = d.rader.map(r=>{
+    const f = r.atgard==='KOP'?'gron':(r.atgard==='SALJ'?'rod':'dim');
+    const txt = r.atgard==='KOP'?L.rebalKop(kr(r.diff_kr)):(r.atgard==='SALJ'?L.rebalSalj(kr(-r.diff_kr)):L.rebalLat);
+    return `<tr><td>${r.namn||r.ticker}<br><span class="dim" style="font-size:12px">${r.ticker}</span></td>
+      <td>${r.nu_pct} %</td><td>${r.mal_pct} %</td><td>${kr(r.varde_kr)}</td>
+      <td class="${f}"><b>${txt}</b></td></tr>`;
+  }).join('');
+  el.className='';
+  el.innerHTML = `
+    <p style="margin-bottom:10px">${L.rebalTotal} <b>${kr(d.total)}</b> ·
+      ${L.rebalAvvik} <b class="${d.behov?'rod':'gron'}">${d.storsta_avvikelse_pp} pp</b>
+      ${d.behov?`<b class="rod">${L.rebalDags}</b>`:`<span class="gron">${L.rebalOk}</span>`}</p>
+    <table><thead><tr>${L.rebalTh.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rader}</tbody></table>`;
+}
+
+/* ---------- Mätare / Gauge ---------- */
+function pil(v){
+  if(v==null) return `<span class="dim">${L.pilIngen}</span>`;
+  if(v>0.05) return `<span class="rod">${L.pilUpp(v.toFixed(2))}</span>`;
+  if(v<-0.05) return `<span class="gron">${L.pilNer(v.toFixed(2))}</span>`;
+  return `<span class="dim">${L.pilLika}</span>`;
+}
+async function hamtaGauge(){
+  try{
+    const svar = await fetch('/api/gauge');
+    if(!svar.ok) throw new Error('status '+svar.status);
+    const d = await svar.json();
+    $('#gaugeTid').textContent = '· '+d.ts;
+    $('#gaugeTal').textContent = d.risk.toFixed(1)+' %';
+    const pct = Math.min(100, d.risk/40*100);
+    const farg = d.risk<10?'var(--gron)':(d.risk<20?'var(--gul)':'var(--rod)');
+    const niva = d.risk<10?L.gaugeNiva[0]:(d.risk<20?L.gaugeNiva[1]:L.gaugeNiva[2]);
+    $('#gaugeBar').style.width=pct+'%'; $('#gaugeBar').style.background=farg;
+    $('#gaugeNiva').textContent=niva; $('#gaugeNiva').style.color=farg;
+    $('#gaugeVar').textContent = kr(d.var_kr);
+    $('#pilForra').innerHTML=pil(d.vs_forra);
+    $('#pilIgar').innerHTML=pil(d.vs_igar);
+    $('#pilManad').innerHTML=pil(d.vs_manad);
+  }catch(e){
+    $('#gaugeNiva').textContent=L.gaugeFel(e.message);
+    $('#gaugeNiva').style.color='var(--gul)';
+    setTimeout(()=>{ if($('#flik-matare').classList.contains('visas')) hamtaGauge(); }, 20000);
+  }
+}
+
+/* ---------- Risk ---------- */
+async function hamtaRisk(){
+  const el = $('#riskInnehall');
+  el.className='laddar'; el.textContent=L.riskLaddar;
+  const d = await hamtaJson('/api/risk', el, 'hamtaRisk');
+  if(!d) return;
+  laddat.risk = true;
+  const per = d.per_etf.map(r=>`<tr><td>${r.ticker}</td><td>${r.vikt} %</td>
+    <td>${r.avk>0?'+':''}${r.avk} %</td><td>${r.vol} %</td>
+    <td class="rod">${r.maxfall} %</td><td>${r.sharpe}</td></tr>`).join('');
+  const t = d.korr.tickers;
+  const korr = t.map((a,i)=>`<tr><td>${a}</td>`+t.map((b,j)=>{
+    const v=d.korr.matris[i][j];
+    const f=(i!==j&&v>0.9)?' class="rod"':(i!==j&&v<0.3?' class="gron"':'');
+    return `<td${f}>${v.toFixed(2)}</td>`;}).join('')+'</tr>').join('');
+  el.className='';
+  el.innerHTML = `
+  <div class="panel"><h2>${L.riskPerFond} <span class="dim">(${d.period})</span></h2>
+    <table><thead><tr>${L.riskTh.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${per}</tbody></table></div>
+  <div class="panel"><h2>${L.riskHela}</h2>
+    <div class="pilrad"><span>${L.riskRad[0]} <span class="dim">${L.riskRad[1]}</span></span><b>${d.portfolj.avk>0?'+':''}${d.portfolj.avk} %</b></div>
+    <div class="pilrad"><span>${L.riskRad[2]}</span><b>${d.portfolj.vol} %</b></div>
+    <div class="pilrad"><span>${L.riskRad[3]}</span><b>${d.portfolj.sharpe}</b></div>
+    <div class="pilrad"><span>${L.riskRad[4]}</span><b class="rod">${d.portfolj.maxfall} % = ${kr(d.portfolj.maxfall_kr)}</b></div></div>
+  <div class="panel"><h2>${L.riskForlora} <span class="dim">${L.riskPa}${kr(d.kapital)})</span></h2>
+    <div class="pilrad"><span>${L.riskKronor[0]}</span><b class="rod">${kr(d.kronor.dag95)}</b></div>
+    <div class="pilrad"><span>${L.riskKronor[1]}</span><b class="rod">${kr(d.kronor.dag99)}</b></div>
+    <div class="pilrad"><span>${L.riskKronor[2]}</span><b class="rod">${kr(d.kronor.manad)}</b></div>
+    <div class="pilrad"><span>${L.riskKronor[3]}</span><b class="rod">${kr(d.kronor.krasch)}</b></div>
+    <p class="hint">${L.riskKraschHint}</p></div>
+  <div class="panel"><h2>${L.riskKorrH2}</h2>
+    <table><thead><tr><th></th>${t.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${korr}</tbody></table>
+    <p class="hint">${L.riskKorrHint}</p></div>
+  ${d.saknas.length?`<div class="medd fel" style="display:block">${L.riskSaknas(d.saknas.join(', '))}</div>`:''}`;
+}
+
+/* ---------- Stresstest / Stress test ---------- */
+function antagText(a){
+  if(a.typ==='beta') return L.stressAntag.beta(a.beta);
+  return L.stressAntag[a.typ]||a.typ;
+}
+async function hamtaStress(){
+  const el = $('#stressInnehall');
+  el.className='laddar'; el.textContent=L.stressLaddar;
+  const d = await hamtaJson('/api/stress', el, 'hamtaStress');
+  if(!d) return;
+  if(d.fel){ el.className=''; el.innerHTML=`<div class="medd fel" style="display:block">${(LANG==='en'&&d.fel_en)||d.fel}</div>`; return; }
+  laddat.stress = true;
+  el.className='';
+  el.innerHTML =
+    `<div class="panel"><h2>${L.stressH2(kr(d.total))}</h2>
+     <p class="hint">${L.stressIntro}</p></div>` +
+    d.scenarier.map((s,i)=>`
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;cursor:pointer;flex-wrap:wrap;gap:6px"
+           onclick="document.getElementById('sc${i}').style.display=document.getElementById('sc${i}').style.display==='none'?'block':'none'">
+        <div><h2 style="margin:0">${LANG==='en'?s.namn_en:s.namn}</h2>
+          <p class="hint" style="margin-top:4px;max-width:560px">${LANG==='en'?s.beskrivning_en:s.beskrivning}</p></div>
+        <div style="text-align:right">
+          <div class="stor rod" style="font-size:26px">${kr(s.total_kr)}</div>
+          <div class="rod">${s.total_pct} %</div>
+        </div>
+      </div>
+      <div id="sc${i}" style="display:none;margin-top:12px">
+        <table><thead><tr>${L.stressTh.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${s.per_fond.map(f=>`<tr><td>${f.namn}</td><td>${kr(f.varde)}</td>
+          <td class="dim">${antagText(f.antagande)}</td>
+          <td class="${f.shock_pct<0?'rod':'gron'}">${f.shock_pct>0?'+':''}${f.shock_pct} %</td>
+          <td class="${f.kr<0?'rod':'gron'}">${kr(f.kr)}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </div>`).join('') +
+    `<div class="panel"><p class="hint">${L.stressVarning(LANG==='en'?d.metod_en:d.metod)}</p></div>`;
+}
+
+/* ---------- Meritlista / Track record ---------- */
+function linje(punkter, farg, maxV, minV){
+  const n=punkter.length, b=900, h=170;
+  const pts = punkter.map((v,i)=>`${(i/(n-1)*b).toFixed(1)},${(h-(v-minV)/(maxV-minV)*(h-10)-5).toFixed(1)}`).join(' ');
+  return `<polyline points="${pts}" fill="none" stroke="${farg}" stroke-width="2.5"/>`;
+}
+function domText(d){
+  const namn = L.meritNamn[d.mot];
+  if(d.diff_sharpe > 0.03) return {kl:'gron', txt:L.meritSlar(namn, d.diff_sharpe.toFixed(2))};
+  if(d.diff_sharpe < -0.03) return {kl:'rod', txt:L.meritForlorar(namn, d.diff_sharpe.toFixed(2))};
+  return {kl:'gul', txt:L.meritLika(namn)};
+}
+async function hamtaMerit(){
+  const el = $('#meritInnehall');
+  el.className='laddar'; el.textContent=L.meritLaddar;
+  const d = await hamtaJson('/api/meritlista', el, 'hamtaMerit');
+  if(!d) return;
+  laddat.merit = true;
+  const rader = d.rader.map((r,i)=>`<tr${i===0?' style="font-weight:700"':''}>
+    <td>${L.meritNamn[r.key]||r.key}</td><td>${kr(r.slut)}</td><td>${r.total>0?'+':''}${r.total} %</td>
+    <td>${r.cagr>0?'+':''}${r.cagr} %${LANG==='en'?'/yr':'/år'}</td><td class="rod">${r.dd} %</td><td>${r.sharpe}</td></tr>`).join('');
+  const alla = [...d.graf.min,...d.graf.vwce,...d.graf.b6040];
+  const mx=Math.max(...alla), mn=Math.min(...alla);
+  el.className='';
+  el.innerHTML=`
+  <div class="panel"><h2>${L.meritH2} <span class="dim">(${d.period}${L.meritKopHallit}</span></h2>
+    <table><thead><tr>${L.meritTh.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rader}</tbody></table>
+    <svg viewBox="0 0 900 180" preserveAspectRatio="none" style="margin-top:14px">
+      ${linje(d.graf.b6040,'#8a94ab',mx,mn)}
+      ${linje(d.graf.vwce,'#4da3ff',mx,mn)}
+      ${linje(d.graf.min,'#3ddc84',mx,mn)}
+    </svg>
+    <p class="hint"><span class="gron">— ${L.meritNamn.min}</span> ·
+      <span style="color:#4da3ff">— ${L.meritNamn.vwce}</span> ·
+      <span class="dim">— ${L.meritNamn.b6040}</span></p>
+    <div style="margin-top:10px">${d.domslut.map(x=>{
+      const dt = domText(x);
+      return `<p class="${dt.kl}" style="padding:4px 0">• ${dt.txt}</p>`;}).join('')}</div>
+    <p class="hint">${L.meritHint}</p></div>`;
+}
+
+/* ==================== Start ==================== */
+fyllStatiskt();
+if(!localStorage.getItem('friskrivning_ok')) $('#friskrivning').style.display='block';
+hamtaInnehav();
+</script>
+</body>
+</html>

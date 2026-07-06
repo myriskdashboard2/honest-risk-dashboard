@@ -1,0 +1,18 @@
+{
+  // EXAMPLE PORTFOLIO - the app copies this to portfolio.json on first run.
+  // Edit your holdings in the app (Holdings tab) or directly here.
+  // "ticker"  = Yahoo Finance symbol WITH exchange suffix (.DE Xetra, .L London,
+  //             .AS Amsterdam, .MI Milan, .ST Stockholm). Use the in-app search.
+  // "vikt"    = TARGET weight (weights are normalized automatically).
+  // "varde_kr" = current value of the holding in SEK, as shown by your broker.
+  "valuta": "SEK",
+  "kapital": 100000,
+  "usd_sek": 10.5,
+  "riskfri_ranta": 0.02,
+  "innehav": [
+    { "ticker": "VWCE.DE", "namn": "Vanguard FTSE All-World (global equities)", "vikt": 0.50, "varde_kr": 0 },
+    { "ticker": "WSML.L",  "namn": "iShares MSCI World Small Cap",              "vikt": 0.10, "varde_kr": 0 },
+    { "ticker": "AGGH.MI", "namn": "iShares Global Aggregate Bond (bonds)",     "vikt": 0.30, "varde_kr": 0 },
+    { "ticker": "IGLN.L",  "namn": "iShares Physical Gold (gold)",              "vikt": 0.10, "varde_kr": 0 }
+  ]
+}
